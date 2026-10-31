@@ -1,0 +1,25 @@
+model:
+  name: ResNet18
+  classifier: CalibratedClassifierCV
+  classifier_path: models/ecg_calibrated_classifier.pkl
+
+calibration:
+  method: platt_sigmoid
+  path: models/cad_platt_calibrator.pkl
+
+labels:
+  "0": cad_positive
+  "1": negative
+  "2": arrhythmia
+
+prediction:
+  binary_score: "P(CAD) / (P(CAD) + P(normal))"
+  arrhythmia_probability: separate
+  threshold: 0.5
+
+data:
+  train: data/processed/train.csv
+  validation: data/processed/validation.csv
+  test: data/processed/test.csv
+
+metadata: models/ecg_metadata.json
