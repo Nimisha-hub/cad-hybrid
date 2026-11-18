@@ -1,0 +1,170 @@
+{
+    "project": "CardioCare",
+    "upstream_commit": "eb11f8c321638c04f34ac6df7012e3a819f23880",
+    "sklearn_version": "1.9.1",
+    "joblib_version": "1.6.0",
+    "random_state": 42,
+    "bootstrap_samples": 2000,
+    "datasets": {
+        "track_a": {
+            "filename": "extention_of_Z-Alizadeh_sani_dataset.xlsx",
+            "sha256": "739343245c2ba578b541370217531750d8e936022f928b83e0d91756caa3ff0b"
+        },
+        "track_b": {
+            "filename": "heart_failure_clinical_records_dataset.csv",
+            "sha256": "6869118b4892e7d641d9ac26f57eafcdf3d67913c3bee9edc0afa77318f1bc39"
+        }
+    },
+    "track_a": {
+        "selected_model": "Ensemble (Random Forest + Support Vector Machine (RBF))",
+        "test_roc_auc": 0.8717948717948717,
+        "brier_score": 0.09883162849111699,
+        "training_prior": 0.7120622568093385,
+        "calibration_method": "sigmoid",
+        "calibration_folds": 5,
+        "bootstrap_auc_ci": {
+            "lower_95": 0.7132867132867133,
+            "upper_95": 0.9766899766899767,
+            "valid_samples": 2000,
+            "method": "stratified_row_bootstrap"
+        },
+        "cv_results": {
+            "Logistic Regression": {
+                "mean_auc": 0.9081023881023882,
+                "std_auc": 0.033665455081406476,
+                "fold_scores": [
+                    0.9333333333333333,
+                    0.9603603603603603,
+                    0.8764478764478765,
+                    0.8962962962962963,
+                    0.8740740740740741
+                ]
+            },
+            "Random Forest": {
+                "mean_auc": 0.9134420134420134,
+                "std_auc": 0.04016819163294044,
+                "fold_scores": [
+                    0.9405405405405406,
+                    0.9693693693693695,
+                    0.8610038610038611,
+                    0.8759259259259259,
+                    0.9203703703703704
+                ]
+            },
+            "Gradient Boosting": {
+                "mean_auc": 0.9073273273273272,
+                "std_auc": 0.037283365038148414,
+                "fold_scores": [
+                    0.963963963963964,
+                    0.9387387387387387,
+                    0.8783783783783784,
+                    0.8685185185185185,
+                    0.8870370370370371
+                ]
+            },
+            "Support Vector Machine (RBF)": {
+                "mean_auc": 0.9095867295867297,
+                "std_auc": 0.03512253710735593,
+                "fold_scores": [
+                    0.9459459459459459,
+                    0.9585585585585586,
+                    0.8841698841698842,
+                    0.8777777777777778,
+                    0.8814814814814814
+                ]
+            },
+            "K-Nearest Neighbors": {
+                "mean_auc": 0.8524503074503075,
+                "std_auc": 0.041626392023839796,
+                "fold_scores": [
+                    0.8873873873873874,
+                    0.9117117117117117,
+                    0.8455598455598456,
+                    0.8148148148148148,
+                    0.8027777777777778
+                ]
+            },
+            "Ensemble (Random Forest + Support Vector Machine (RBF))": {
+                "mean_auc": 0.9162076362076362,
+                "std_auc": 0.033989791014586,
+                "fold_scores": [
+                    0.9441441441441442,
+                    0.9657657657657658,
+                    0.8822393822393823,
+                    0.8796296296296297,
+                    0.9092592592592593
+                ]
+            }
+        }
+    },
+    "track_b": {
+        "selected_model": "Ensemble (Random Forest + Logistic Regression)",
+        "interval_level_test_roc_auc": 0.7266233766233765,
+        "training_patients": 254,
+        "test_patients": 45,
+        "bin_size_days": 30,
+        "number_of_bins": 10,
+        "bootstrap_auc_ci": {
+            "lower_95": 0.5811244076948793,
+            "upper_95": 0.8460162916497359,
+            "valid_samples": 2000,
+            "method": "patient_cluster_bootstrap_interval_level_auc"
+        },
+        "cv_results": {
+            "Logistic Regression": {
+                "mean_auc": 0.7499981596717439,
+                "std_auc": 0.027812650843738636,
+                "fold_scores": [
+                    0.7106662798568804,
+                    0.7699243746364165,
+                    0.7694038245219348
+                ]
+            },
+            "Random Forest": {
+                "mean_auc": 0.753706695042741,
+                "std_auc": 0.027810731979622527,
+                "fold_scores": [
+                    0.7673339135480127,
+                    0.7788442893154934,
+                    0.7149418822647169
+                ]
+            },
+            "Gradient Boosting": {
+                "mean_auc": 0.7190372150825904,
+                "std_auc": 0.020236832288735577,
+                "fold_scores": [
+                    0.7429648970118943,
+                    0.7206709327128176,
+                    0.6934758155230596
+                ]
+            },
+            "Support Vector Machine (RBF)": {
+                "mean_auc": 0.7190450464322616,
+                "std_auc": 0.02555757195374144,
+                "fold_scores": [
+                    0.6907455758630694,
+                    0.7526662788442893,
+                    0.7137232845894264
+                ]
+            },
+            "K-Nearest Neighbors": {
+                "mean_auc": 0.594671318770659,
+                "std_auc": 0.02110313499369249,
+                "fold_scores": [
+                    0.6244560487380331,
+                    0.5781462090362615,
+                    0.5814116985376827
+                ]
+            },
+            "Ensemble (Random Forest + Logistic Regression)": {
+                "mean_auc": 0.7644793298315902,
+                "std_auc": 0.016131960689398785,
+                "fold_scores": [
+                    0.7468329948747703,
+                    0.7858250921078146,
+                    0.760779902512186
+                ]
+            }
+        }
+    }
+}
