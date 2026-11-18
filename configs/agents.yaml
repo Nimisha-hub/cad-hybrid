@@ -1,0 +1,47 @@
+
+# Local proposed agent registry for cad-hybrid.
+# CardioCare agents are enabled for testing but do not vote in fusion.
+
+defaults:
+  timeout_s: 60
+
+agents:
+  lab:
+    class: cad_hybrid.agents.lab:LabAgent
+    target: cvd_proxy
+    evidence_group: clinical
+    votes: true
+    weight: 1.0
+
+  ecg:
+    class: cad_hybrid.agents.ecg:ECGAgent
+    target: cad
+    evidence_group: ecg
+    votes: true
+    weight: 1.0
+    options:
+      arrhythmia_warning: 0.5
+
+  ppg:
+    class: cad_hybrid.agents.ppg:PPGAgent
+    target: cvd_proxy
+    evidence_group: ppg
+    votes: false
+    weight: 0.0
+    enabled: true
+
+  cardiocare_cad:
+    class: cad_hybrid.agents.cardiocare:CardiocareCADAgent
+    target: cad
+    evidence_group: clinical
+    votes: false
+    weight: 0.0
+    enabled: true
+
+  cardiocare_hf:
+    class: cad_hybrid.agents.cardiocare:CardiocareHFAgent
+    target: hf_survival
+    evidence_group: hf
+    votes: false
+    weight: 0.0
+    enabled: true

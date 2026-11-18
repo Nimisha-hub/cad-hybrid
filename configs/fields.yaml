@@ -1,0 +1,149 @@
+
+# Local proposed canonical patient fields for cad-hybrid.
+# Existing shared fields are preserved.
+# Additional fields support CardioCare Track A and Track B.
+
+fields:
+  # Existing canonical fields
+  age:
+    label: "Age"
+    type: number
+    unit: years
+
+  sex_male:
+    label: "Sex is male"
+    type: binary
+    description: "1 = male, 0 = female"
+
+  bmi:
+    label: "BMI"
+    type: number
+    unit: kg/m2
+
+  bp_mmhg:
+    label: "Systolic BP"
+    type: number
+    unit: mmHg
+    description: "Systolic blood pressure"
+
+  total_cholesterol:
+    label: "Total cholesterol"
+    type: number
+    unit: mg/dL
+
+  hdl:
+    label: "HDL cholesterol"
+    type: number
+    unit: mg/dL
+
+  ldl:
+    label: "LDL cholesterol"
+    type: number
+    unit: mg/dL
+
+  triglycerides:
+    label: "Triglycerides"
+    type: number
+    unit: mg/dL
+
+  random_blood_sugar:
+    label: "Random blood sugar"
+    type: number
+    unit: mmol/L
+    description: "Random (not fasting) blood glucose"
+
+  hemoglobin:
+    label: "Hemoglobin"
+    type: number
+    unit: g/dL
+
+  creatinine:
+    label: "Creatinine"
+    type: number
+    unit: mg/dL
+
+  platelets:
+    label: "Platelets"
+    type: number
+    unit: cells/uL
+
+  sodium:
+    label: "Sodium"
+    type: number
+    unit: mmol/L
+
+  potassium:
+    label: "Potassium"
+    type: number
+    unit: mmol/L
+
+  chloride:
+    label: "Chloride"
+    type: number
+    unit: mmol/L
+
+  family_history:
+    label: "Family history of heart disease"
+    type: binary
+    description: "Family history of heart disease"
+
+  hypertension:
+    label: "Hypertension"
+    type: binary
+    description: "Known hypertension"
+
+  diabetes:
+    label: "Diabetes"
+    type: binary
+    description: "Known diabetes"
+
+  chest_pain:
+    label: "Chest pain"
+    type: binary
+    description: "History of chest pain"
+
+  # Additional CardioCare fields
+  current_smoker:
+    label: "Current smoker"
+    type: binary
+    description: "1 = yes, 0 = no"
+
+  typical_chest_pain:
+    label: "Typical chest pain"
+    type: binary
+    description: "Typical chest pain indicator"
+
+  atypical_chest_pain:
+    label: "Atypical chest pain"
+    type: binary
+    description: "Atypical chest pain indicator"
+
+  dyspnea:
+    label: "Dyspnea"
+    type: binary
+    description: "Breathlessness indicator"
+
+  pulse_rate:
+    label: "Pulse rate"
+    type: number
+    unit: bpm
+
+  esr:
+    label: "Erythrocyte sedimentation rate"
+    type: number
+    unit: mm/hour
+
+  anaemia:
+    label: "Anaemia"
+    type: binary
+    description: "1 = yes, 0 = no"
+
+  ejection_fraction:
+    label: "Ejection fraction"
+    type: number
+    unit: "%"
+
+  heart_failure_diagnosed:
+    label: "Confirmed heart failure diagnosis"
+    type: binary
+    description: "1 = confirmed diagnosis, 0 = not confirmed"
