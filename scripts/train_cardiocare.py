@@ -221,7 +221,7 @@ def main():
     }
 
     # -----------------------------------------------------
-    # TRACK A
+    # TRACK A - CAD
     # -----------------------------------------------------
 
     print("\n[1/2] Training Track A - CAD")
@@ -238,8 +238,13 @@ def main():
         random_state=RANDOM_STATE,
     )
 
+    # IMPORTANT:
+    # Save the OOF Platt calibrator along with the model.
+    # predict_a() requires both model and calibrator.
+
     bundle_a = {
         "model": result_a["model"],
+        "calibrator": result_a["calibrator"],
         "features": result_a["features"],
         "training_prior": result_a["training_prior"],
         "global_importance": result_a["global_importance"],
@@ -273,9 +278,10 @@ def main():
     print("ROC-AUC:", round(result_a["test_auc"], 4))
     print("Brier score:", round(result_a["brier_score"], 4))
     print("Bootstrap CI:", ci_a)
+    print("Calibration:", result_a["calibration_method"])
 
     # -----------------------------------------------------
-    # TRACK B
+    # TRACK B - HEART FAILURE
     # -----------------------------------------------------
 
     print("\n[2/2] Training Track B - Heart Failure")
