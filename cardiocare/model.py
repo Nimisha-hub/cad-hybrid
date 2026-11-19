@@ -1,11 +1,9 @@
-
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 from sklearn.base import clone
-from sklearn.calibration import CalibratedClassifierCV
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import (
     GradientBoostingClassifier,
@@ -115,7 +113,7 @@ def run_model_bakeoff(
     random_state=42,
     groups=None,
 ):
-    """Compare candidates using stratified or grouped CV."""
+    """Compare candidate models using stratified or grouped CV."""
 
     candidates = build_candidate_models(random_state)
 
@@ -126,6 +124,7 @@ def run_model_bakeoff(
             random_state=random_state,
         )
         cv_splits = list(cv.split(X_train, y_train))
+
     else:
         groups = np.asarray(groups)
 
@@ -139,6 +138,7 @@ def run_model_bakeoff(
             shuffle=True,
             random_state=random_state,
         )
+
         cv_splits = list(
             cv.split(X_train, y_train, groups=groups)
         )
@@ -246,6 +246,7 @@ def _prepare_track_a(path):
 
     # Preserve upstream categorical encodings.
     X = X.replace({"Y": 1, "N": 0})
+
     X["Sex"] = X["Sex"].map({
         "Male": 1,
         "Fmale": 0,
@@ -265,6 +266,98 @@ def _prepare_track_a(path):
     y = y.astype(int)
 
     return X, y
+
+
+# =========================================================
+# TRACK A: OOF PLATT CALIBRATION
+# =========================================================
+
+def _probability_to_logit(probabilities):
+    """
+    Convert probabilities to logits for Platt calibration.
+
+    Clipping prevents infinite values when probabilities
+    are exactly zero or one.
+    """
+
+    probabilities = np.clip(
+        np.asarray(probabilities, dtype=float),
+        1e-6,
+        1.0 - 1e-6,
+    )
+
+    return np.log(
+        probabilities / (1.0 - probabilities)
+    ).reshape(-1, 1)
+
+
+def _fit_oof_platt_calibrator(
+    estimator,
+    X,
+    y,
+    random_state=42,
+    n_splits=5,
+):
+    """
+    Generate one out-of-fold prediction per training row.
+
+    Fit the Platt calibrator using only OOF predictions.
+    Finally, refit the selected estimator on all training rows.
+    """
+
+    cv = StratifiedKFold(
+        n_splits=n_splits,
+        shuffle=True,
+        random_state=random_state,
+    )
+
+    oof_probabilities = np.full(
+        len(y),
+        np.nan,
+        dtype=float,
+    )
+
+    for train_indices, validation_indices in cv.split(X, y):
+        fold_model = clone(estimator)
+
+        fold_model.fit(
+            X.iloc[train_indices],
+            y.iloc[train_indices],
+        )
+
+        oof_probabilities[validation_indices] = (
+            fold_model.predict_proba(
+                X.iloc[validation_indices]
+            )[:, 1]
+        )
+
+    if not np.isfinite(oof_probabilities).all():
+        raise RuntimeError(
+            "OOF calibration did not produce finite predictions."
+        )
+
+    calibrator = LogisticRegression(
+        solver="lbfgs",
+        max_iter=1000,
+    )
+
+    calibrator.fit(
+        _probability_to_logit(oof_probabilities),
+        y,
+    )
+
+    final_model = clone(estimator)
+
+    final_model.fit(
+        X,
+        y,
+    )
+
+    return (
+        final_model,
+        calibrator,
+        oof_probabilities,
+    )
 
 
 # =========================================================
@@ -292,28 +385,39 @@ def train_a(dataset_path, random_state=42):
         random_state=random_state,
     )
 
-    calibration_cv = StratifiedKFold(
-        n_splits=5,
-        shuffle=True,
-        random_state=random_state,
+    # Fit explicit OOF Platt calibration.
+    final_model, calibrator, oof_probabilities = (
+        _fit_oof_platt_calibrator(
+            estimator=model,
+            X=X_train,
+            y=y_train,
+            random_state=random_state,
+            n_splits=5,
+        )
     )
 
-    calibrated_model = CalibratedClassifierCV(
-        estimator=clone(model),
-        method="sigmoid",
-        cv=calibration_cv,
-        ensemble=True,
+    # Predict using the final model, then calibrate its scores.
+    raw_probabilities = final_model.predict_proba(
+        X_test
+    )[:, 1]
+
+    probabilities = calibrator.predict_proba(
+        _probability_to_logit(raw_probabilities)
+    )[:, 1]
+
+    test_auc = roc_auc_score(
+        y_test,
+        probabilities,
     )
 
-    calibrated_model.fit(X_train, y_train)
+    brier_score = brier_score_loss(
+        y_test,
+        probabilities,
+    )
 
-    probabilities = calibrated_model.predict_proba(X_test)[:, 1]
-
-    test_auc = roc_auc_score(y_test, probabilities)
-    brier_score = brier_score_loss(y_test, probabilities)
-
+    # Global permutation importance for the final estimator.
     importance = permutation_importance(
-        calibrated_model,
+        final_model,
         X_test,
         y_test,
         n_repeats=20,
@@ -324,10 +428,14 @@ def train_a(dataset_path, random_state=42):
     global_importance = pd.Series(
         importance.importances_mean,
         index=FEATURES_A,
-    ).sort_values(key=abs, ascending=False)
+    ).sort_values(
+        key=abs,
+        ascending=False,
+    )
 
     return {
-        "model": calibrated_model,
+        "model": final_model,
+        "calibrator": calibrator,
         "features": FEATURES_A,
         "best_name": best_name,
         "cv_results": cv_results,
@@ -339,7 +447,8 @@ def train_a(dataset_path, random_state=42):
         "test_indices": X_test.index.tolist(),
         "test_y": y_test.to_numpy().tolist(),
         "test_probabilities": probabilities.tolist(),
-        "calibration_method": "sigmoid",
+        "oof_probabilities": oof_probabilities.tolist(),
+        "calibration_method": "OOF Platt scaling",
         "calibration_cv": 5,
         "random_state": random_state,
     }
@@ -351,10 +460,12 @@ def train_a(dataset_path, random_state=42):
 
 def predict_a(bundle, values):
     model = bundle["model"]
+    calibrator = bundle["calibrator"]
     features = bundle["features"]
 
     missing = [
-        feature for feature in features
+        feature
+        for feature in features
         if feature not in values
     ]
 
@@ -370,7 +481,11 @@ def predict_a(bundle, values):
         }
     ])
 
-    row = row.replace({"Y": 1, "N": 0})
+    row = row.replace({
+        "Y": 1,
+        "N": 0,
+    })
+
     row["Sex"] = row["Sex"].replace({
         "Male": 1,
         "Fmale": 0,
@@ -378,18 +493,27 @@ def predict_a(bundle, values):
 
     try:
         row = row.astype(float)
+
     except (ValueError, TypeError):
         raise ValueError(
             "Track A inputs must be numeric or valid categories."
         )
 
-    if not np.isfinite(row.to_numpy(dtype=float)).all():
+    if not np.isfinite(
+        row.to_numpy(dtype=float)
+    ).all():
         raise ValueError(
             "Track A inputs must contain only finite values."
         )
 
-    probability = float(
+    raw_probability = float(
         model.predict_proba(row)[0, 1]
+    )
+
+    probability = float(
+        calibrator.predict_proba(
+            _probability_to_logit([raw_probability])
+        )[0, 1]
     )
 
     contributions = bundle["global_importance"]
@@ -470,7 +594,8 @@ def train_b(dataset_path, random_state=42):
     ]
 
     missing_columns = [
-        column for column in required_columns
+        column
+        for column in required_columns
         if column not in data.columns
     ]
 
@@ -535,8 +660,14 @@ def train_b(dataset_path, random_state=42):
         groups=train_expanded["patient_id"].to_numpy(),
     )
 
-    probabilities = model.predict_proba(X_test)[:, 1]
-    test_auc = roc_auc_score(y_test, probabilities)
+    probabilities = model.predict_proba(
+        X_test
+    )[:, 1]
+
+    test_auc = roc_auc_score(
+        y_test,
+        probabilities,
+    )
 
     return {
         "model": model,
@@ -570,7 +701,8 @@ def predict_b(bundle, values):
     features = bundle["features"]
 
     missing = [
-        feature for feature in features
+        feature
+        for feature in features
         if feature not in values
     ]
 
@@ -588,6 +720,7 @@ def predict_b(bundle, values):
         clinical_row = pd.DataFrame(
             [clinical_values]
         ).astype(float)
+
     except (ValueError, TypeError):
         raise ValueError(
             "Track B inputs must be numeric."
