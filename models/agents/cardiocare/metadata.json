@@ -17,14 +17,14 @@
     },
     "track_a": {
         "selected_model": "Ensemble (Random Forest + Support Vector Machine (RBF))",
-        "test_roc_auc": 0.8717948717948717,
-        "brier_score": 0.09883162849111699,
+        "test_roc_auc": 0.8648018648018647,
+        "brier_score": 0.09726705679344856,
         "training_prior": 0.7120622568093385,
-        "calibration_method": "sigmoid",
+        "calibration_method": "OOF Platt scaling",
         "calibration_folds": 5,
         "bootstrap_auc_ci": {
-            "lower_95": 0.7132867132867133,
-            "upper_95": 0.9766899766899767,
+            "lower_95": 0.6992424242424242,
+            "upper_95": 0.9721445221445215,
             "valid_samples": 2000,
             "method": "stratified_row_bootstrap"
         },
